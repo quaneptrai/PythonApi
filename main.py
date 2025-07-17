@@ -58,7 +58,7 @@ def get_newest_film_slugs(pages=1):
     }
     slugs = []
 
-    for i in range(1, pages + 1):
+    for i in range(1, pages + 4):
         url = f"https://phimapi.com/danh-sach/phim-moi-cap-nhat?page={i}"
         try:
             response = requests.get(url, headers=headers)
@@ -73,6 +73,25 @@ def get_newest_film_slugs(pages=1):
             print(f"Failed to fetch page {i}: {e}")
     
     return slugs
+@app.route("/embed-links-name", methods=["GET"])
+def get_embed_links_name():
+    slug = request.args.get("slug")
+    if not slug:
+        return jsonify({"error": "Missing slug parameter"}), 400
+
+    url = f"https://phimapi.com/phim/{slug}"
+    headers = {
+        "User-Agent": "Google"
+    }
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        name = data.get("movie", {}).get("origin_name", "Unknown")
+        return jsonify({"name": name})
+    except requests.RequestException as e:
+        print("Error fetching data:", e)
+        return jsonify({"error": "Failed to fetch data"}), 500
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
